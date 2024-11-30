@@ -1,0 +1,7 @@
+[package]
+name = "NM-Lab2"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+dialoguer = { version = "0.11.0", features = ["fuzzy-select"] }
