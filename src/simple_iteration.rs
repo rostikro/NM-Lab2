@@ -1,4 +1,4 @@
-const KF: f64 = 1. / 6.;
+const KF: f64 = 0.15;
 
 fn iter_stop(arr1: &[f64; 4], arr2: &[f64; 4], precision: f64) -> bool {
     let diff: Vec<f64> = arr1
@@ -18,13 +18,13 @@ pub fn simple_iteration() {
         prev_result = result;
 
         result[0] = prev_result[0]
-            - KF * (7. * prev_result[0] + 2. * prev_result[2] + 3. * prev_result[3] - 32.);
+            - KF * (4. * prev_result[0]  + 1. * prev_result[2] - 12.);
         result[1] = prev_result[1]
-            - KF * (3. * prev_result[2] + 2. * prev_result[3] + 6. * prev_result[1] - 47.);
+            - KF * (3. * prev_result[1] + 2. * prev_result[3] - 19.);
         result[2] = prev_result[2]
-            - KF * (2. * prev_result[0] + 5. * prev_result[2] + 1. * prev_result[3] - 23.);
+            - KF * (1. * prev_result[0] + 5. * prev_result[2] + 1. * prev_result[3] - 27.);
         result[3] = prev_result[3]
-            - KF * (1. * prev_result[2] + 4. * prev_result[3] + 2. * prev_result[1] - 29.);
+            - KF * (2. * prev_result[1] + 1. * prev_result[2] + 4. * prev_result[3] - 30.);
 
         println!(
             "Iteration: {}: [x1: {}, x2: {}, x3: {}, x4: {}]",

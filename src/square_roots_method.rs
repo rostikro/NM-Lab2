@@ -1,3 +1,5 @@
+use nalgebra::Matrix3;
+
 fn transpose<T>(v: Vec<Vec<T>>) -> Vec<Vec<T>> {
     let len = v[0].len();
     let mut iters: Vec<_> = v.into_iter().map(|n| n.into_iter()).collect();
@@ -9,6 +11,16 @@ fn transpose<T>(v: Vec<Vec<T>>) -> Vec<Vec<T>> {
                 .collect::<Vec<T>>()
         })
         .collect()
+}
+
+fn multiply_matrix_with_diagonal_matrix(s: Vec<Vec<f64>>, d: &Vec<Vec<f64>>) -> Vec<Vec<f64>> {
+    let d: Vec<f64> = d
+        .iter()
+        .enumerate()
+        .map(|(i, row)| row[i])
+        .collect();
+
+    s.iter().map(|row| {row.iter().zip(d.iter()).map(|(n, d_n)| n * d_n).collect()}).collect()
 }
 
 fn find_d(a: &Vec<Vec<f64>>, s: &Vec<Vec<f64>>, d: &Vec<Vec<f64>>, i: usize) -> f64 {
@@ -57,11 +69,42 @@ fn find_matrix_s_and_d(a: &Vec<Vec<f64>>) -> (Vec<Vec<f64>>, Vec<Vec<f64>>) {
         }
     }
 
-    println!("A: {a:?}");
-    println!("D: {d:?}");
-    println!("S: {s:?}");
+    println!("Matrix S:");
+    for row in &s {
+        for n in row {
+            print!("{:10.5}", n);
+        }
+        println!();
+    }
+
+    println!("Matrix D:");
+    for row in &d {
+        for n in row {
+            print!("{:10}", n);
+        }
+        println!();
+    }
 
     (s, d)
+}
+
+fn find_det(s: &Vec<Vec<f64>>, d: &Vec<Vec<f64>>) -> f64 {
+    let mut result = 1.;
+
+    for i in 0..d.len() {
+        result *= d[i][i] * s[i][i] * s[i][i];
+    }
+
+    result
+}
+
+fn find_condition_number(a: &Vec<Vec<f64>>) -> f64 {
+    let a = Matrix3::new(1., 2., 0., 2., 2., 3., 0., 3., 2.);
+    let norm_a = a.norm();
+    let a_inv = a.try_inverse().unwrap();
+    let norm_a_inv = a_inv.norm();
+
+    norm_a * norm_a_inv
 }
 
 pub fn square_root_method() {
@@ -71,38 +114,32 @@ pub fn square_root_method() {
         vec![0, 3, 2],
     ];
     let a = a.iter().map(|inner| inner.iter().map(|&x| x as f64).collect()).collect();
-
     let b = vec![8., 22., 17.];
-
-    // let a = vec![
-    //     vec![1, 2, 3],
-    //     vec![2, 5, 5],
-    //     vec![3, 5, 6],
-    // ];
-    // let a = a.iter().map(|inner| inner.iter().map(|&x| x as f64).collect()).collect();
-    //
-    // let b = vec![1., 2., 3.];
-    //
-    // let a = vec![
-    //     vec![1, -1, 1, -1],
-    //     vec![-1, 5, -3, 3],
-    //     vec![1, -3, -7, 1],
-    //     vec![-1, 3, 1, 10],
-    // ];
-    // let a = a.iter().map(|inner| inner.iter().map(|&x| x as f64).collect()).collect();
-    //
-    // let b = vec![2., -4., -18., -5.];
 
     let (s, d) = find_matrix_s_and_d(&a);
 
-    let mut s_t = transpose(s.clone());
-    println!("Transponse S: {:?}", s_t);
-    for i in 0..s_t.len() {
-        s_t[i][i] *= d[i][i];
+    let s_t = transpose(s.clone());
+    println!("Matrix S transposed:");
+    for row in &s_t {
+        for n in row {
+            print!("{:10.5}", n);
+        }
+        println!();
     }
-    println!("Transponse S dot D: {:?}", s_t);
 
-    solve_equation(&s, &s_t, &b);
+    let s_t_dot_d = multiply_matrix_with_diagonal_matrix(s_t, &d);
+    println!("Matrix S_T dot D:");
+    for row in &s_t_dot_d {
+        for n in row {
+            print!("{:10.5}", n);
+        }
+        println!();
+    }
+
+    solve_equation(&s, &s_t_dot_d, &b);
+
+    println!("Det A: {}", find_det(&s, &d));
+    println!("Condition number: {}", find_condition_number(&a));
 }
 
 fn solve_equation(s: &Vec<Vec<f64>>, s_t: &Vec<Vec<f64>>, b: &Vec<f64>) {
@@ -134,5 +171,6 @@ fn solve_equation(s: &Vec<Vec<f64>>, s_t: &Vec<Vec<f64>>, b: &Vec<f64>) {
         result_x[i] = (result_y[i] - sum) / s[i][i];
     }
 
-    println!("Result: {:?}, y: {:?}", result_x, result_y);
+    println!("y: {:?}", result_y);
+    println!("Result: x: {:?}", result_x);
 }
